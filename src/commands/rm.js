@@ -20,8 +20,8 @@ program
     }
 
     try {
-      const source = path.join('/', namespace, service, '/');
-      await rm({ source, bucket });
+      const destination = path.join('/', namespace, service, '/');
+      await rm({ destination, bucket });
       process.exit(0);
     } catch (ex) {
       logger.error(ex.message);

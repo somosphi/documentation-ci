@@ -47,13 +47,8 @@ exports.findTypeByFilename = findTypeByFilename;
  *
  * @param {String} filename
  */
-const findJSONByFilename = (filename) => {
+const findByFilename = (filename) => {
   const file = filename.toLowerCase();
-  const ext = path.extname(file)
-
-  if (ext !== '.json') {
-    return null;
-  }
 
   if (OpenAPI.files.includes(file)) {
     return filename;
@@ -64,6 +59,23 @@ const findJSONByFilename = (filename) => {
   }
 
   return null;
+};
+
+exports.findByFilename = findByFilename;
+
+/**
+ *
+ * @param {String} filename
+ */
+const findJSONByFilename = (filename) => {
+  const file = filename.toLowerCase();
+  const ext = path.extname(file)
+
+  if (ext !== '.json') {
+    return null;
+  }
+
+  return findByFilename(filename);
 };
 
 exports.findJSONByFilename = findJSONByFilename;

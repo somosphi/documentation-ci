@@ -1,16 +1,18 @@
 const fs = require('fs');
 const path = require('path');
 const glob = require('glob');
-const { findJSONByFilename } = require('../helpers/types');
+const { runBundle } = require('../services/bundle');
+const { runValidation } = require('../services/validate');
+const { findJSONByFilename, findByFilename, findTypeByFilename } = require('../helpers/types');
 const SimpleStorageService = require('../integrations/SimpleStorageService');
 
 /**
  * @param {Object} param
- * @param {String} param.source
+ * @param {String} param.destination
  * @param {String} param.bucket
  */
-const rm = async ({ source, bucket }) => {
-  await SimpleStorageService.emptyDirectory(bucket, source)
+const rm = async ({ destination, bucket }) => {
+  await SimpleStorageService.emptyDirectory(bucket, destination)
 };
 
 exports.rm = rm;
@@ -22,7 +24,6 @@ exports.rm = rm;
  * @param {String} param.bucket
  */
 const cp = async ({ dir, destination, bucket }) => {
-  console.log(dir)
   const rawfiles = glob.sync('**/*', {
     cwd: dir,
   });
@@ -61,14 +62,52 @@ const cp = async ({ dir, destination, bucket }) => {
 
 exports.cp = cp;
 
-const prepare = async () => {
-  // TODO: implementar
+/**
+ * @param {Object} param
+ * @param {String} param.dir
+ */
+const prepare = async ({ dir }) => {
+  const rawfiles = glob.sync('**/*', {
+    cwd: dir,
+  });
+
+  const files = rawfiles.filter((file) => {
+    const ext = path.extname(file);
+
+    if (ext === '') {
+      return false;
+    }
+
+    return findByFilename(file) !== null;
+  });
+
+  return files;
 };
 
 exports.prepare = prepare;
 
-const sync = async () => {
-  // TODO: implementar
+/**
+ * @param {Object} param
+ * @param {String} param.dir
+ * @param {String} param.destination
+ * @param {String} param.bucket
+ */
+const sync = async ({
+  dir,
+  bucket,
+  destination,
+}) => {
+  const tasks = await prepare({ dir });
+
+  for (let index = 0; index < tasks.length; index += 1) {
+    const input = path.join(dir, tasks[index]);
+    const type = findTypeByFilename(input);
+    await runValidation({ input, type });
+    await runBundle({ input, type, output: dir });
+  }
+
+  await rm({ bucket, destination });
+  await cp({ bucket, destination, dir });
 };
 
 exports.sync = sync;

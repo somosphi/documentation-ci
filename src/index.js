@@ -6,6 +6,7 @@ require('./commands/bundle');
 require('./commands/sync');
 require('./commands/cp');
 require('./commands/rm');
+require('./commands/prepare');
 
 if (process.argv.length === 2) {
   process.argv.push('-h')
