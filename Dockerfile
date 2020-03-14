@@ -2,13 +2,17 @@ FROM node:12-alpine
 
 LABEL maintainer="henrique.schmidt@somosphi.com"
 
-RUN addgroup -S service && \
-  adduser application -S -G service
+RUN addgroup -S continuous-integration && \
+  adduser documentation -S -G continuous-integration
 
-COPY . /home/application
-RUN cd /home/application && npm install --production && \
-  chmod -R 775 /home/application && \
-  chown -R application:service /home/application
+COPY . /opt/documentation-cli
 
-USER application:service
-WORKDIR /home/application
+ENV DEBUG=
+
+RUN cd /opt/documentation-cli && \
+  npm install --production --silent && \
+  npm run link && \
+  npm run chmod
+
+USER documentation:continuous-integration
+WORKDIR /home/documentation

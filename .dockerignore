@@ -1,6 +1,7 @@
 test
 .vscode
 .temp
+.env
 scripts
 docs
 development
@@ -15,3 +16,4 @@ nodemon.json
 README.md
 CHANGELOG.md
 .eslintrc.yml
+Dockerfile
