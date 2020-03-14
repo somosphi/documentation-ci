@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const debug = require('debug')('services:sync');
 const glob = require('glob');
 const { runBundle } = require('../services/bundle');
 const { runValidation } = require('../services/validate');
@@ -12,6 +13,7 @@ const SimpleStorageService = require('../integrations/SimpleStorageService');
  * @param {String} param.bucket
  */
 const rm = async ({ destination, bucket }) => {
+  debug(`start to empty bucket ${bucket} on directory ${destination}`);
   await SimpleStorageService.emptyDirectory(bucket, destination)
 };
 
@@ -24,6 +26,7 @@ exports.rm = rm;
  * @param {String} param.bucket
  */
 const cp = async ({ dir, destination, bucket }) => {
+  debug(`start to search files for upload on directory ${dir}`);
   const rawfiles = glob.sync('**/*', {
     cwd: dir,
   });
@@ -34,6 +37,7 @@ const cp = async ({ dir, destination, bucket }) => {
     '.json',
   ];
 
+  debug(`filter files | ignore: ${ignore.join('|')}`);
   const files = rawfiles.filter((file) => {
     const ext = path.extname(file);
 
@@ -49,7 +53,7 @@ const cp = async ({ dir, destination, bucket }) => {
 
     return !ignore.includes(ext);
   });
-
+  debug(`start to upload ${files.length} files`);
   const uploads = files.map(async (file) => {
     const fullpath = path.resolve(dir, file);
     const key = path.join(destination, file);
@@ -58,6 +62,7 @@ const cp = async ({ dir, destination, bucket }) => {
   });
 
   await Promise.all(uploads);
+  debug('upload complete');
 };
 
 exports.cp = cp;
@@ -67,6 +72,7 @@ exports.cp = cp;
  * @param {String} param.dir
  */
 const prepare = async ({ dir }) => {
+  debug(`start to search files for bundle on directory ${dir}`);
   const rawfiles = glob.sync('**/*', {
     cwd: dir,
   });
@@ -81,6 +87,7 @@ const prepare = async ({ dir }) => {
     return findByFilename(file) !== null;
   });
 
+  debug(`${files.length} found`);
   return files;
 };
 
@@ -97,17 +104,21 @@ const sync = async ({
   bucket,
   destination,
 }) => {
+  debug(`start sync directory ${dir} to sync bucket ${path.join(bucket, destination)}`);
   const tasks = await prepare({ dir });
 
   for (let index = 0; index < tasks.length; index += 1) {
     const input = path.join(dir, tasks[index]);
-    const type = findTypeByFilename(input);
+    debug(`start process file ${input}`);
+
+    const type = findTypeByFilename(path.basename(input));
     await runValidation({ input, type });
     await runBundle({ input, type, output: dir });
   }
 
   await rm({ bucket, destination });
   await cp({ bucket, destination, dir });
+  debug('sync done');
 };
 
 exports.sync = sync;

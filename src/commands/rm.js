@@ -1,6 +1,6 @@
-const path = require('path');
 const program = require('../program');
 const logger = require('../logger');
+const normalize = require('../helpers/normalize');
 const { rm } = require('../services/sync');
 
 program
@@ -20,8 +20,10 @@ program
     }
 
     try {
-      const destination = path.join('/', namespace, service, '/');
-      await rm({ destination, bucket });
+      await rm({
+        destination: normalize.destination(namespace, service),
+        bucket: normalize.bucket(bucket),
+      });
       process.exit(0);
     } catch (ex) {
       logger.error(ex.message);

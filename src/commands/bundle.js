@@ -1,7 +1,6 @@
-const path = require('path');
 const program = require('../program');
 const logger = require('../logger');
-const { findTypeByFilename } = require('../helpers/types');
+const normalize = require('../helpers/normalize');
 const { runBundle } = require('../services/bundle');
 
 program
@@ -9,19 +8,16 @@ program
   .description('Unifica os arquivos em um único arquivo json e salva em um diretório')
   .option('-t, --type <type>', 'Tipo de documentação')
   .action(async (input, output) => {
-    const { dir, base, ext } = path.parse(path.resolve(output));
+    try {
+      await runBundle({
+        input: normalize.file('input', input),
+        output: normalize.dir('output', output),
+        type: normalize.type(input, program.type),
+      });
 
-    const data = {
-      input: path.resolve(input),
-      output: ext === '' ? path.join(dir, base) : dir,
-      type: program.type
-        ? program.type.toLowerCase()
-        : findTypeByFilename(path.basename(input)),
-    };
-
-    const message = await runBundle(data);
-    if (message) {
-      logger.error(message);
+      process.exit(0);
+    } catch (ex) {
+      logger.error(ex.message);
       process.exit(1);
     }
   });

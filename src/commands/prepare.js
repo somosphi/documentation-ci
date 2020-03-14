@@ -1,6 +1,6 @@
-const path = require('path');
 const program = require('../program');
 const logger = require('../logger');
+const normalize = require('../helpers/normalize');
 const { prepare } = require('../services/sync');
 
 program
@@ -12,7 +12,10 @@ program
     }
 
     try {
-      const files = await prepare({ dir: path.resolve(process.cwd(), dir) });
+      const files = await prepare({
+        dir: normalize.dir('dir', dir),
+      });
+
       files.map((file) => logger.info(`Arquivo encontrado: ${file}`));
       process.exit(0);
     } catch (ex) {

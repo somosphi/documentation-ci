@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const program = require('./program');
 const logger = require('./logger');
 
