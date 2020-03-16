@@ -10,7 +10,7 @@ program
   .action(async (input) => {
     try {
       await runValidation({
-        input: normalize.dir('input', input),
+        input: normalize.file('input', input),
         type: normalize.type(input, program.type)
       });
 
