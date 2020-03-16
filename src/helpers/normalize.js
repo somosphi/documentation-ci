@@ -8,11 +8,11 @@ const { findTypeByFilename } = require('./types');
  */
 const bucket = (string) => {
   if (string.startsWith('s3://')) {
-    const url = new URL(string);
+    const url = new URL(string.trim());
     return url.hostname;
   }
 
-  return string;
+  return string.trim();
 };
 
 exports.bucket = bucket;
@@ -23,7 +23,7 @@ exports.bucket = bucket;
  * @returns {String}
  */
 const dir = (field, dir) => {
-  const location = path.resolve(process.cwd(), dir);
+  const location = path.resolve(process.cwd(), dir.trim());
   const info = fs.lstatSync(location);
 
   if (info.isDirectory()) {
@@ -59,7 +59,7 @@ exports.file = file;
  * @returns {String}
  */
 const destination = (namespace, service) => {
-  return path.join('/', namespace, service, '/');
+  return path.join('', namespace.trim(), service.trim(), '/');
 };
 
 exports.destination = destination;
@@ -74,7 +74,7 @@ const type = (input, type = null) => {
     return type.toLowerCase();
   }
 
-  return findTypeByFilename(path.basename(input));
+  return findTypeByFilename(path.basename(input.trim()));
 };
 
 exports.type = type;
